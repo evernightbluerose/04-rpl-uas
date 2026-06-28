@@ -1,0 +1,3 @@
+# blokir semua akses langsung ke folder ini
+# berkas hanya boleh di-include oleh php
+Require all denied

@@ -1,0 +1,1130 @@
+/* =============================================================
+   style.css - sistem kehadiran desa
+   berisi seluruh gaya kustom aplikasi.
+
+   penting: file ini di-include secara inline oleh includes/header.php
+   menggunakan readfile() agar tidak diblokir anubis proxy.
+   jangan dihubungkan sebagai <link rel="stylesheet"> eksternal.
+   ============================================================= */
+
+
+/* ---------------------------------------------------------------
+   1. css variables (design tokens)
+   mendukung dark mode (default) dan light mode via data-theme
+--------------------------------------------------------------- */
+
+/* dark mode - tema default aplikasi */
+/* dark mode - tema default aplikasi */
+:root,
+[data-theme="dark"] {
+    --bg-body:         #0b1329;
+    --bg-card:         #131e36;
+    --bg-elevated:     #1b2a4a;
+    --bg-input:        #0d172e;
+
+    --text-primary:    #f8fafc;
+    --text-secondary:  #94a3b8;
+    --text-muted:      #64748b;
+
+    --border-color:    #1e293b;
+    --border-hover:    #334155;
+
+    --navbar-bg:       #070d1e;
+    --toggler-filter:  invert(1) brightness(0.85);
+
+    --shadow-sm:  0 1px 4px rgba(0, 0, 0, 0.30);
+    --shadow-md:  0 4px 20px rgba(0, 0, 0, 0.35);
+    --shadow-lg:  0 8px 40px rgba(0, 0, 0, 0.45);
+
+    --table-head-bg:    #1b2a4a;
+    --table-head-color: #38bdf8;
+
+    --scrollbar-track: #0d172e;
+    --scrollbar-thumb: #1e293b;
+    --scrollbar-hover: #334155;
+
+    --accent:        #3b82f6;
+    --accent-light:  #60a5fa;
+    --accent-dim:    #1d4ed8;
+    --accent-subtle: rgba(59, 130, 246, 0.15);
+
+    --success:     #10b981;
+    --success-dim: #047857;
+    --warning:     #f59e0b;
+    --warning-dim: #b45309;
+    --danger:      #ef4444;
+    --danger-dim:  #b91c1c;
+
+    --mono-icon:    #38bdf8;
+    --mono-icon-bg: rgba(56, 189, 248, 0.12);
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --transition: all 0.2s ease;
+}
+
+/* light mode - diaktifkan melalui tombol toggle tema */
+[data-theme="light"] {
+    --bg-body:         #f4f6f9;
+    --bg-card:         #ffffff;
+    --bg-elevated:     #e2e8f0;
+    --bg-input:        #ffffff;
+
+    --text-primary:    #0f172a;
+    --text-secondary:  #475569;
+    --text-muted:      #64748b;
+
+    --border-color:    #cdd4e0;
+    --border-hover:    #b4bed2;
+
+    --navbar-bg:       #0d233a;
+    --toggler-filter:  invert(1) brightness(1);
+
+    --shadow-sm:  0 1px 4px rgba(0, 0, 0, 0.06);
+    --shadow-md:  0 4px 16px rgba(0, 0, 0, 0.07);
+    --shadow-lg:  0 8px 32px rgba(0, 0, 0, 0.09);
+
+    --table-head-bg:    #f1f5f9;
+    --table-head-color: #0d233a;
+
+    --scrollbar-track: #f1f5f9;
+    --scrollbar-thumb: #cbd5e1;
+    --scrollbar-hover: #94a3b8;
+
+    --accent:        #0d6efd;
+    --accent-light:  #3b82f6;
+    --accent-dim:    #0a58ca;
+    --accent-subtle: rgba(13, 110, 253, 0.08);
+
+    --success:     #198754;
+    --success-dim: #146c43;
+    --warning:     #ffc107;
+    --warning-dim: #d39e00;
+    --danger:      #dc3545;
+    --danger-dim:  #b02a37;
+
+    --mono-icon:    #0d6efd;
+    --mono-icon-bg: rgba(13, 110, 253, 0.08);
+}
+
+/*
+ * transisi smooth saat berganti tema (dark ↔ light).
+ * kelas ini ditambahkan sementara oleh javascript saat toggle tema
+ * dan dihapus setelah transisi selesai, agar tidak mengganggu
+ * animasi lain selama interaksi normal.
+ */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+    transition: background-color 0.4s ease,
+                color 0.4s ease,
+                border-color 0.4s ease,
+                box-shadow 0.4s ease,
+                fill 0.4s ease !important;
+    transition-delay: 0s !important;
+}
+
+
+
+/* ---------------------------------------------------------------
+   2. reset & base
+--------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    /* menggunakan inter dari google fonts, dengan fallback ke system font */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+    background-color: var(--bg-body) !important;
+    color: var(--text-primary) !important;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a {
+    color: var(--accent);
+}
+a:hover {
+    color: var(--accent-light);
+}
+
+/* styling tag <code> untuk menampilkan nip dan nilai teknis */
+code {
+    background: var(--bg-elevated);
+    color: var(--accent);
+    padding: 0.15em 0.45em;
+    border-radius: 3px;
+    font-size: 0.88em;
+}
+
+
+/* ---------------------------------------------------------------
+   3. layout
+--------------------------------------------------------------- */
+
+/* area konten utama mengisi ruang yang tersisa (flexbox column) */
+.main-content {
+    flex: 1;
+    padding: 2rem 0;
+}
+
+/* override bootstrap text-muted to match our custom theme variables */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* ---------------------------------------------------------------
+   4. navbar
+--------------------------------------------------------------- */
+
+#main-navbar {
+    background: var(--navbar-bg) !important;
+    /* efek kaca (glassmorphism) untuk navbar */
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.55rem 0;
+    z-index: 1030;
+    transition: background 0.3s ease;
+}
+
+#main-navbar .navbar-brand {
+    color: var(--accent) !important;
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: var(--transition);
+}
+#main-navbar .navbar-brand:hover {
+    color: var(--accent-light) !important;
+}
+#main-navbar .navbar-brand i {
+    font-size: 1.25rem;
+}
+
+.navbar-toggler {
+    border-color: var(--border-hover) !important;
+}
+.navbar-toggler-icon {
+    /* menggunakan css filter agar ikon burger terlihat di dark mode */
+    filter: var(--toggler-filter);
+}
+
+/* info pengguna di navbar (nama + badge role) */
+.nav-user-info {
+    color: var(--text-secondary) !important;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.88rem;
+    cursor: default;
+}
+.nav-user-info i {
+    color: var(--accent);
+    font-size: 1.05rem;
+}
+
+/* badge kecil yang menampilkan role (admin/kades/pegawai) */
+.role-badge {
+    background: var(--accent-subtle);
+    color: var(--accent);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15em 0.5em;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+/* tombol toggle tema (bulat, di dalam navbar) */
+.btn-theme-toggle {
+    background: var(--bg-elevated) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--accent) !important;
+    border-radius: 50% !important;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.btn-theme-toggle:hover {
+    background: var(--border-hover) !important;
+    transform: rotate(15deg);
+}
+
+/* tombol toggle tema mengambang (untuk halaman login tanpa navbar) */
+.theme-toggle-float {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--accent);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1050;
+    transition: var(--transition);
+    box-shadow: var(--shadow-md);
+}
+.theme-toggle-float:hover {
+    background: var(--bg-elevated);
+    transform: rotate(15deg);
+}
+
+/* tombol keluar (logout) di navbar */
+.btn-logout {
+    background: transparent !important;
+    color: var(--danger) !important;
+    border: 1px solid var(--danger) !important;
+    border-radius: var(--radius-sm) !important;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.3rem 0.8rem;
+    transition: var(--transition);
+}
+.btn-logout:hover {
+    background: var(--danger) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+
+
+/* ---------------------------------------------------------------
+   5. cards
+--------------------------------------------------------------- */
+
+.card {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-md) !important;
+    transition: var(--transition);
+}
+.card:hover {
+    border-color: var(--border-hover) !important;
+}
+
+/* varian kartu dengan bayangan lebih kuat */
+.card-elevated {
+    box-shadow: var(--shadow-md);
+}
+
+
+/* ---------------------------------------------------------------
+   6. form controls
+--------------------------------------------------------------- */
+
+.form-control {
+    background-color: var(--bg-input) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.93rem;
+    transition: var(--transition);
+}
+.form-control::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.8;
+}
+.form-control:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px var(--accent-subtle) !important;
+}
+.form-control:disabled,
+.form-control[readonly] {
+    background-color: var(--bg-elevated) !important;
+    opacity: 1 !important;
+    color: var(--text-secondary) !important;
+}
+
+/* label di atas input */
+.form-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.82rem;
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* input group - tombol di sebelah kanan input */
+.input-group .form-control {
+    border-right: none !important;
+}
+.input-group .btn {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+
+/* ---------------------------------------------------------------
+   7. buttons
+--------------------------------------------------------------- */
+
+.btn {
+    border-radius: var(--radius-sm) !important;
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 0.5rem 1.1rem;
+    transition: var(--transition);
+}
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background-color: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #fff !important;
+}
+.btn-primary:hover {
+    background-color: var(--accent-dim) !important;
+    border-color: var(--accent-dim) !important;
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background-color: var(--success) !important;
+    border-color: var(--success) !important;
+    color: #fff !important;
+}
+.btn-success:hover {
+    background-color: var(--success-dim) !important;
+    border-color: var(--success-dim) !important;
+    transform: translateY(-1px);
+}
+
+.btn-warning {
+    background-color: var(--warning) !important;
+    border-color: var(--warning) !important;
+    color: #fff !important;
+}
+.btn-warning:hover {
+    background-color: var(--warning-dim) !important;
+    border-color: var(--warning-dim) !important;
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background-color: var(--danger) !important;
+    border-color: var(--danger) !important;
+    color: #fff !important;
+}
+.btn-danger:hover {
+    background-color: var(--danger-dim) !important;
+    border-color: var(--danger-dim) !important;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: var(--text-muted) !important;
+    border-color: var(--text-muted) !important;
+    color: #fff !important;
+}
+.btn-secondary:hover {
+    background-color: var(--text-secondary) !important;
+    border-color: var(--text-secondary) !important;
+    transform: translateY(-1px);
+}
+
+.btn-theme {
+    background-color: var(--accent-subtle) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+}
+.btn-theme:hover {
+    background-color: var(--accent) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+
+.btn-outline-secondary {
+    color: var(--text-secondary) !important;
+    border-color: var(--border-hover) !important;
+    background: transparent !important;
+}
+.btn-outline-secondary:hover {
+    background: var(--bg-elevated) !important;
+    color: var(--text-primary) !important;
+}
+
+
+/* ---------------------------------------------------------------
+   8. tables
+--------------------------------------------------------------- */
+
+.table {
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+    margin-bottom: 0;
+}
+
+/* setiap sel tabel */
+.table > :not(caption) > * > * {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+    padding: 0.7rem 0.9rem;
+}
+
+/* header kolom tabel */
+.table thead th {
+    background-color: var(--table-head-bg) !important;
+    color: var(--table-head-color) !important;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-color: var(--border-color) !important;
+}
+
+/* efek hover pada baris tabel */
+.table tbody tr {
+    transition: var(--transition);
+}
+.table tbody tr:hover > * {
+    background-color: var(--bg-elevated) !important;
+}
+
+/* wrapper tabel dengan border dan rounded corner */
+.table-container {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* wrapper tabel logbook/izin */
+.table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ---------------------------------------------------------------
+   9. alerts
+--------------------------------------------------------------- */
+
+.alert {
+    border-radius: var(--radius-sm) !important;
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+.alert-info {
+    background: var(--accent-subtle) !important;
+    color: var(--accent) !important;
+    border: 1px solid var(--border-color) !important;
+}
+.alert-success {
+    background: rgba(46, 125, 80, 0.08) !important;
+    color: var(--success) !important;
+    border: 1px solid var(--border-color) !important;
+}
+.alert-danger {
+    background: rgba(201, 96, 96, 0.08) !important;
+    color: var(--danger) !important;
+    border: 1px solid var(--border-color) !important;
+}
+.alert-warning {
+    background: rgba(201, 168, 78, 0.08) !important;
+    color: var(--warning) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+
+/* ---------------------------------------------------------------
+   10. badges
+--------------------------------------------------------------- */
+
+.badge {
+    font-weight: 600;
+    font-size: 0.73rem;
+    padding: 0.3em 0.6em;
+    border-radius: 4px;
+}
+.badge.bg-success {
+    background: rgba(46, 125, 80, 0.12) !important;
+    color: var(--success) !important;
+    border: 1px solid var(--border-color);
+}
+.badge.bg-danger {
+    background: rgba(201, 96, 96, 0.12) !important;
+    color: var(--danger) !important;
+    border: 1px solid var(--border-color);
+}
+.badge.bg-info {
+    background: var(--accent-subtle) !important;
+    color: var(--accent) !important;
+    border: 1px solid var(--border-color);
+}
+.badge.bg-warning {
+    background: rgba(201, 168, 78, 0.12) !important;
+    color: var(--warning) !important;
+    border: 1px solid var(--border-color);
+}
+.badge.bg-secondary {
+    background: rgba(138, 149, 173, 0.12) !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid var(--border-color);
+}
+
+
+/* ---------------------------------------------------------------
+   11. halaman login
+--------------------------------------------------------------- */
+
+/* memusatkan kartu login secara vertikal dan horizontal */
+.login-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background: var(--bg-body);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 390px;
+    padding: 2.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.login-header .login-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    background: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #fff;
+    margin-bottom: 0.8rem;
+    box-shadow: var(--shadow-sm);
+}
+.login-header h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+.login-header p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.login-form .form-group {
+    margin-bottom: 1.15rem;
+}
+
+/* wrapper untuk input dengan ikon di dalam (posisi absolut) */
+.login-form .input-icon-wrapper {
+    position: relative;
+}
+.login-form .input-icon-wrapper .form-control {
+    padding-left: 2.7rem;
+}
+.login-form .input-icon-wrapper .input-icon {
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    pointer-events: none;
+    transition: var(--transition);
+}
+.login-form .input-icon-wrapper .form-control:focus ~ .input-icon {
+    color: var(--accent);
+}
+
+.login-form .btn-login {
+    width: 100%;
+    padding: 0.65rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-top: 0.4rem;
+}
+
+
+/* ---------------------------------------------------------------
+   12. stat cards (kartu ringkasan statistik)
+--------------------------------------------------------------- */
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transition);
+}
+.stat-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ikon di dalam stat card */
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    background: var(--mono-icon-bg);
+    color: var(--mono-icon);
+}
+
+/* varian warna ikon (semua menggunakan palet monokromatik) */
+.stat-icon.blue,
+.stat-icon.green,
+.stat-icon.yellow,
+.stat-icon.red,
+.stat-icon.mauve {
+    background: var(--mono-icon-bg);
+    color: var(--mono-icon);
+}
+
+.stat-info h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.1;
+}
+.stat-info p {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin: 0.1rem 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+}
+
+
+/* ---------------------------------------------------------------
+   13. section header (judul bagian dengan tombol aksi)
+--------------------------------------------------------------- */
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+.section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+.section-title i {
+    color: var(--accent);
+}
+
+
+/* ---------------------------------------------------------------
+   14. attendance card (kartu presensi pegawai)
+--------------------------------------------------------------- */
+
+.attendance-card {
+    max-width: 430px;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    text-align: center;
+}
+
+/* jam besar di kartu presensi */
+.attendance-card .time-display {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    margin: 0.4rem 0;
+}
+.attendance-card .date-display {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+}
+
+/* indikator status presensi (pending/checked-in/completed) */
+.attendance-card .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    background: var(--accent-subtle);
+    color: var(--accent);
+    border: 1px solid var(--border-color);
+}
+.status-indicator.checked-in,
+.status-indicator.pending,
+.status-indicator.completed {
+    background: var(--accent-subtle);
+    color: var(--accent);
+    border: 1px solid var(--border-color);
+}
+
+
+/* ---------------------------------------------------------------
+   15. footer
+--------------------------------------------------------------- */
+
+.site-footer {
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    padding: 1.25rem 0;
+    margin-top: auto;
+    transition: background 0.3s ease;
+}
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.footer-brand i {
+    font-size: 1.1rem;
+}
+.footer-info {
+    text-align: right;
+}
+.footer-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+.footer-sub {
+    font-size: 0.72rem !important;
+    color: var(--text-muted) !important;
+    margin-top: 0.15rem !important;
+}
+.footer-sub .heart {
+    color: var(--danger);
+}
+
+
+/* ---------------------------------------------------------------
+   16. empty state (tampilan saat data kosong)
+--------------------------------------------------------------- */
+
+.empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text-secondary);
+}
+.empty-state i {
+    font-size: 2.5rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+.empty-state p {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+
+/* ---------------------------------------------------------------
+   17. page welcome (header sambutan di setiap halaman)
+--------------------------------------------------------------- */
+
+.page-welcome {
+    margin-bottom: 1.5rem;
+}
+.page-welcome h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+}
+.page-welcome h2 i {
+    color: var(--accent);
+}
+.page-welcome p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+
+/* ---------------------------------------------------------------
+   18. animasi
+--------------------------------------------------------------- */
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in           { animation: fadeInUp 0.35s ease-out; }
+.fade-in-delay-1   { animation-delay: 0.04s; animation-fill-mode: both; }
+.fade-in-delay-2   { animation-delay: 0.08s; animation-fill-mode: both; }
+.fade-in-delay-3   { animation-delay: 0.12s; animation-fill-mode: both; }
+.fade-in-delay-4   { animation-delay: 0.16s; animation-fill-mode: both; }
+
+
+/* ---------------------------------------------------------------
+   19. responsive (mobile ≤ 768px)
+--------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1rem 0;
+    }
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-info {
+        text-align: center;
+    }
+    .stat-card {
+        padding: 1rem;
+    }
+    .attendance-card {
+        padding: 1.5rem;
+    }
+    .attendance-card .time-display {
+        font-size: 1.8rem;
+    }
+    .login-card {
+        padding: 1.75rem 1.25rem;
+    }
+}
+
+
+/* ---------------------------------------------------------------
+   20. scrollbar kustom (webkit only)
+--------------------------------------------------------------- */
+
+::-webkit-scrollbar       { width: 7px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+
+
+/* ---------------------------------------------------------------
+   21. seleksi teks
+--------------------------------------------------------------- */
+
+::selection {
+    background: var(--accent-subtle);
+    color: var(--text-primary);
+}
+
+
+/* ---------------------------------------------------------------
+   22. modals & wizard ui
+--------------------------------------------------------------- */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+/* fix bootstrap modal conflict dengan custom modal-backdrop */
+.modal {
+    z-index: 10005 !important;
+}
+
+.modal-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 2rem 1.5rem;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalFadeIn 0.25s ease;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-box h2,
+.modal-box h3 {
+    color: var(--text-primary);
+}
+
+.modal-box .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* qr reader container — prevent blank video */
+#qr-reader {
+    min-height: 260px;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+#qr-reader video {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    object-fit: cover;
+}
+
+/* hide html5-qrcode internal ui clutter */
+#qr-reader img[alt="Info icon"],
+#qr-reader span[style*="font-size"],
+#qr-reader div[style*="text-align: center"] > a,
+#qr-reader__header_message,
+#qr-reader__dashboard_section,
+#qr-reader__dashboard_section_csr,
+#qr-reader__dashboard_section_fsr,
+#qr-reader__scan_region > img,
+#qr-reader__status_span {
+    display: none !important;
+}
+
+#qr-reader__scan_region {
+    min-height: 240px !important;
+}
+
+/* selfie video — prevent blank/collapsed */
+#selfie-video {
+    width: 100%;
+    max-height: 320px;
+    border-radius: 8px;
+    background: #000;
+    object-fit: cover;
+    display: block;
+}
+
+/* camera select dropdown inside wizard */
+#qr-camera-select {
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+}
+
+#qr-camera-select:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+/* custom navbar styling for government styling in light mode */
+#main-navbar .nav-link {
+    color: var(--text-secondary) !important;
+    transition: var(--transition);
+}
+#main-navbar .nav-link:hover,
+#main-navbar .nav-link.active {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] #main-navbar {
+    background: #0d233a !important;
+    border-bottom: 1px solid #1a3a60;
+}
+[data-theme="light"] #main-navbar .navbar-brand {
+    color: #ffc107 !important; /* gold logo/text brand */
+}
+[data-theme="light"] #main-navbar .nav-link {
+    color: #cbd5e1 !important; /* light text for dark blue navbar */
+}
+[data-theme="light"] #main-navbar .nav-link:hover,
+[data-theme="light"] #main-navbar .nav-link.active {
+    color: #ffffff !important;
+}
+[data-theme="light"] #main-navbar .role-badge {
+    background: rgba(255, 193, 7, 0.15) !important;
+    color: #ffc107 !important;
+    border: 1px solid rgba(255, 193, 7, 0.3) !important;
+}
+[data-theme="light"] #main-navbar .btn-theme-toggle {
+    background: #1e3a5a !important;
+    border-color: #2b4f7c !important;
+    color: #ffc107 !important;
+}
+[data-theme="light"] #main-navbar .btn-logout {
+    border-color: #ef4444 !important;
+    color: #fca5a5 !important;
+}
+[data-theme="light"] #main-navbar .btn-logout:hover {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+}
+

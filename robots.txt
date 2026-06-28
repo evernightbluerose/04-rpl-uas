@@ -1,0 +1,7 @@
+# robots.txt - sistem kehadiran desa
+#
+# aplikasi internal - larang semua crawler/indexer mengakses situs ini.
+# user-agent: * sudah mencakup semua bot tanpa terkecuali.
+
+User-agent: *
+Disallow: /

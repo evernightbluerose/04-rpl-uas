@@ -1,0 +1,24 @@
+# database credentials - jangan commit ke repositori
+database.txt
+
+# runtime & logs
+*.log
+*.bak
+
+# environment
+.env
+
+# editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# os
+.DS_Store
+Thumbs.db
+
+# scratch / temporary dev files
+scratch/
+docs/
+database_test.sql

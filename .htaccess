@@ -1,0 +1,50 @@
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+
+# konfigurasi ukuran upload agar foto profil (base64) dan lampiran tidak gagal
+<IfModule mod_php.c>
+    php_value upload_max_filesize 32M
+    php_value post_max_size 64M
+    php_value max_input_vars 5000
+    php_value memory_limit 128M
+</IfModule>
+
+
+# set env jika request berasal dari proxy ssl seperti cloudflare atau anubis
+SetEnvIf X-Forwarded-Proto "https" HTTPS=on
+
+# blokir akses langsung ke folder internal
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # blokir akses langsung ke subfolder sensitif
+    RewriteRule ^(config|includes|controllers|templates|assets/css)(/|$) - [F,L]
+
+    # anti-crawler / bot blocker untuk robot yang tidak patuh
+    RewriteCond %{HTTP_USER_AGENT} (Googlebot|bingbot|Baiduspider|YandexBot|DuckDuckBot|Slurp|Sogou|facebot|ia_archiver|Twitterbot|SemrushBot|AhrefsBot|DotBot|MJ12bot|GPTBot|CCBot|anthropic-ai|Claude-Web|Google-Extended|FacebookBot) [NC]
+    RewriteRule .* - [F,L]
+
+    # routing front controller untuk semua request non-fisik
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+# proteksi file sensitif
+# blokir akses ke dotfiles seperti .git atau .htaccess
+<FilesMatch "^\\.">
+    Require all denied
+</FilesMatch>
+
+# blokir akses ke berkas database dan dokumentasi
+<FilesMatch "\.(txt|sql|md|log|sh|bak|env)$">
+    Require all denied
+</FilesMatch>
+
+# anti-crawler - http header untuk response
+<IfModule mod_headers.c>
+    Header always set X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex"
+    # cegah browser menebak content type dan batasi embedding frame
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+</IfModule>
