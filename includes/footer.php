@@ -6,6 +6,9 @@
  *
  * @package sistemkehadiran
  */
+
+// bawa variabel global agar bisa diakses saat di-require dari dalam method controller
+global $global_settings, $settings;
 ?>
 
 </main><!-- /.main-content -->

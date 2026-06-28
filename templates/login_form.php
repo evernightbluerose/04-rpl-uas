@@ -6,6 +6,10 @@
  *
  * @package sistemkehadiran\templates
  */
+
+// bawa $global_settings dari scope global agar bisa diakses
+// saat file ini di-require dari dalam method controller (class scope)
+global $global_settings;
 ?>
 
 <!-- wrapper memusatkan kartu login secara vertikal & horizontal -->
